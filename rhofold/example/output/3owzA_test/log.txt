@@ -1,0 +1,9 @@
+2026-01-24 16:51:13,165 - INFO: Constructing RhoFold
+2026-01-24 16:51:13,912 - INFO:     downloading ./pretrained/RhoFold_pretrained.pt
+2026-01-24 16:51:54,036 - INFO:     loading ./pretrained/RhoFold_pretrained.pt
+2026-01-24 16:51:54,753 - INFO: Input_fas ./example/input/3owzA/3owzA.fasta
+2026-01-24 16:51:54,754 - INFO: Input_a3m is None, the modeling will run using single sequence only (input_fas)
+2026-01-24 16:51:54,754 - INFO: Started RhoFold Inference
+2026-01-24 16:51:54,754 - INFO:     Inference using device cpu
+2026-01-24 16:52:35,740 - INFO:     Export PDB file to ./example/output/3owzA_test//unrelaxed_model.pdb
+2026-01-24 16:52:35,740 - INFO: Finished RhoFold Inference in 40.986 seconds
