@@ -103,27 +103,79 @@ python inference.py \
 
 ## Model Architecture
 
-### Custom Transformer
+### RhoFold+ (State-of-the-Art)
 
-The custom model (`model.py`) uses:
-- **Embedding Layer**: Nucleotide embeddings (A, C, G, U)
-- **Positional Encoding**: Sinusoidal encoding for sequence position
-- **Transformer Encoder**: Multi-head self-attention with pre-norm
-- **Coordinate Head**: MLP that predicts (x, y, z) for 5 atoms per nucleotide
+RhoFold+ (`rhofold/`) is a language model-based deep learning approach:
 
-Default configuration:
-- Embedding dimension: 128
-- Attention heads: 4
-- Transformer layers: 3
-- Max sequence length: 512
+```
+Input Sequence → RNA-FM (12 layers) → Rhoformer (12 layers) → Structure Module (8 layers) → 3D Coordinates
+      ↑                                      ↑
+     MSA ←──────────────────────── Recycling x 10 ──────────────────────────┘
+```
 
-### RhoFold+
+Components:
+- **RNA-FM**: Pre-trained RNA language model for sequence embeddings
+- **Rhoformer/E2EFormer**: MSA attention + Pair representations + Triangle attention
+- **Structure Module**: Invariant Point Attention (IPA) for 3D coordinate prediction
+- **Recycling**: Iterative refinement (10 cycles)
+- **AMBER Relaxation**: Optional molecular dynamics refinement
 
-RhoFold+ uses a language model-based approach with:
-- RNA-FM embeddings
-- E2EFormer architecture
-- Structure module for coordinate prediction
-- Optional AMBER relaxation
+### Custom Transformer (Lightweight)
+
+The custom model (`model.py`) is a simpler, faster alternative:
+- Nucleotide embeddings (A, C, G, U)
+- Transformer encoder (3 layers, 4 heads)
+- MLP coordinate prediction head
+
+## Advanced Usage: Leveraging RhoFold+
+
+### Option 1: Direct Inference with RhoFold+
+
+```python
+from rhofold_enhanced_model import RhoFoldWrapper
+
+wrapper = RhoFoldWrapper(device='cuda')
+coords, plddt, secondary_structure = wrapper.predict("GGGAAACCC")
+```
+
+### Option 2: Knowledge Distillation
+
+Train a smaller, faster model using RhoFold+ as a teacher:
+
+```bash
+python train_rhofold.py --mode distill --epochs 50 --device cuda
+```
+
+This creates a lightweight student model (~10M params) that learns from RhoFold's predictions (~100M params).
+
+### Option 3: Hybrid Model with Frozen RhoFold Backbone
+
+Use RhoFold's powerful feature extraction with custom prediction heads:
+
+```python
+from rhofold_enhanced_model import HybridRNAModel
+
+model = HybridRNAModel(freeze_backbone=True)
+# Only custom heads are trainable, RhoFold features are frozen
+output = model(tokens, rna_fm_tokens)
+```
+
+### Option 4: Pre-generate RhoFold Predictions
+
+Generate predictions for your dataset to use as pseudo-labels:
+
+```bash
+python train_rhofold.py --mode generate
+```
+
+### Key Files for RhoFold Integration
+
+| File | Purpose |
+|------|---------|
+| `rhofold_enhanced_model.py` | Wrapper classes and hybrid models |
+| `train_rhofold.py` | Training scripts for distillation/fine-tuning |
+| `rhofold/inference.py` | Direct RhoFold+ inference |
+| `rhofold/rhofold/rhofold.py` | Core RhoFold+ model |
 
 ## Configuration
 
